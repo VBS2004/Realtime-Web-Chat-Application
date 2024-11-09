@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.8.1/socket.io.min.js" integrity="sha512-8ExARjWWkIllMlNzVg7JKq9RKWPlJABQUNq6YvAjE/HobctjH/NA+bSiDMDvouBVjp4Wwnf1VP1OEv7Zgjtuxw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <title>Chat Room</title>
+</head>
+<body style="text-align:center; font-family: Arial, serif; font-size: 14pt">
+
+    <div id="messages" style="margin: 0 auto; width: 60%; text-align: left; min-height: 300px; border: 1px solid #ccc; padding: 10px; overflow-y: auto; max-height: 400px;">
+    </div>
+    
+    <input type="text" id="username" placeholder="Username" required>
+    <button id="LoginBtn">Login</button>
+    <br>
+    <input type="text" id="Recipient" placeholder="To" required>
+    <input type="text" id="message" placeholder="Message" required>
+    <button id="sendBtn">Send</button>
+
+    <script type="text/javascript">
+        $(document).ready(function(){
+            var socket = io();
+            var username=""
+            // When connected, send a connection message
+
+            // Listen for messages from the server
+            socket.on('message', function(data){
+                $('#messages').append($('<p>').text(data));
+            });
+
+            // Send message on button click
+            $('#LoginBtn').on('click', function(){
+                username = $('#username').val();
+                // Only send if both fields are filled
+                if (username) {
+                    socket.emit('Login',username);
+                    $('#LoginBtn').attr("diabled","disabled");  // Clear the message field
+                    $('#username').attr("readonly","readonly");  // Clear the message field
+                } else {
+                    alert("Please enter username!");
+                }
+            });
+            $('#sendBtn').on('click', function(){
+                let message = $('#message').val();
+                let to = $('#Recipient').val();
+                console.log(message);
+                console.log(to);
+                
+                // Only send if both fields are filled
+                if (message && to) {
+                    // Use backticks for template literals
+                    let dt = `{
+                        "To": "${to}",
+                        "Message": "${message}"
+                    }`;
+                    
+                    // Parse the JSON string
+                    let json = JSON.parse(dt);
+                    socket.emit('Chat',json);
+                    $('#message').val('');  // Clear the message field
+                } else {
+                    alert("Please enter both username and message.");
+                }
+            });
+
+        });
+    </script>
+</body>
+</html>
